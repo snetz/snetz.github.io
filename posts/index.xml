@@ -6,16 +6,7 @@
     <description>Recent content in Posts on snetz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 22 Jan 2021 18:07:00 +0100</lastBuildDate><atom:link href="https://snetz.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>My Second Post</title>
-      <link>https://snetz.github.io/posts/my-second-post/</link>
-      <pubDate>Fri, 22 Jan 2021 18:07:00 +0100</pubDate>
-      
-      <guid>https://snetz.github.io/posts/my-second-post/</guid>
-      <description>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</description>
-    </item>
-    
+    <lastBuildDate>Fri, 22 Jan 2021 16:16:35 +0100</lastBuildDate><atom:link href="https://snetz.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>My First Post</title>
       <link>https://snetz.github.io/posts/my-first-post/</link>
