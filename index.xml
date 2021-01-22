@@ -5,14 +5,13 @@
     <link>https://snetz.github.io/</link>
     <description>Recent content on snetz</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Fri, 22 Jan 2021 16:16:35 +0100</lastBuildDate><atom:link href="https://snetz.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language><atom:link href="https://snetz.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Winter</title>
-      <link>https://snetz.github.io/posts/winter/</link>
+      <link>https://snetz.github.io/winter/</link>
       <pubDate>Fri, 22 Jan 2021 16:16:35 +0100</pubDate>
       
-      <guid>https://snetz.github.io/posts/winter/</guid>
+      <guid>https://snetz.github.io/winter/</guid>
       <description>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</description>
     </item>
     
