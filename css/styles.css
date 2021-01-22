@@ -13,7 +13,7 @@ body {
 }
 
 body>header {
-    padding: 4rem;
+    padding:1rem;
     background: url(/bg.jpg);
 }
 
@@ -23,7 +23,7 @@ body>footer {
 }
 
 main {
-    margin: 4rem;
+    padding:1rem;
     min-height:100vh;
 }
 
@@ -59,4 +59,13 @@ td {
 
 pre {
     padding:1rem;
+}
+
+@media (min-width: 50em) {
+    main {
+        margin: 4rem;
+    }
+    body>header {
+        padding:4rem;
+    }
 }
