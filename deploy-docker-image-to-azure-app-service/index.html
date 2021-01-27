@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy Docker Image To Azure App Service</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body><header>
+    <a href="/">snetz.github.io</a>
+    <h1>Deploy Docker Image To Azure App Service</h1>
+</header><main>
+
+<p><a href="#tldr">TL;DR</a></p>
+<h2 id="tldr">TL;DR</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">az login
+
+export RESOURCE_GROUP<span style="color:#f92672">=</span>MyResourceGroup
+export CONTAINER_REGISTRY<span style="color:#f92672">=</span>mycontainerregistrybarbaz789
+export SERVICE_PLAN<span style="color:#f92672">=</span>MyAppServicePlan
+export DOCKER_IMAGE<span style="color:#f92672">=</span>hello-world
+export APP_SERVICE<span style="color:#f92672">=</span>MyAppNameBarBaz876
+
+az group create <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --name $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --location westeurope
+
+az acr create <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --resource-group $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --name $CONTAINER_REGISTRY <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --sku Basic <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --admin-enabled true
+
+az acr login --name $CONTAINER_REGISTRY
+
+docker image build -t $DOCKER_IMAGE .
+
+docker tag $DOCKER_IMAGE $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1
+
+docker push $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1
+
+docker rmi $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1
+
+az appservice plan create <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --name $SERVICE_PLAN <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --resource-group $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --is-linux
+
+az webapp create <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --resource-group $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --plan $SERVICE_PLAN <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --name $APP_SERVICE <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --deployment-container-image-name $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1
+
+PRINCIPAL_ID<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    az webapp identity assign <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --resource-group $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --name $APP_SERVICE <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --query principalId <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --output tsv <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">)</span>
+
+SUBSCRIPTION_ID<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    az account show --query id --output tsv <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">)</span>
+
+az role assignment create <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --assignee $PRINCIPAL_ID <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/$CONTAINER_REGISTRY <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --role <span style="color:#e6db74">&#34;AcrPull&#34;</span>
+
+az webapp config container set <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --name $APP_SERVICE <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --resource-group $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --docker-custom-image-name $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --docker-registry-server-url https://$CONTAINER_REGISTRY.azurecr.io
+
+az webapp log config <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --name $APP_SERVICE <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --resource-group $RESOURCE_GROUP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --docker-container-logging filesystem
+
+echo <span style="color:#e6db74">&#34;https://</span>$APP_SERVICE<span style="color:#e6db74">.azurewebsites.net&#34;</span>
+</code></pre></div><h2 id="installation-azure-cli">Installation Azure CLI</h2>
+<p><a href="https://docs.microsoft.com/de-de/cli/azure/install-azure-cli-windows?tabs=azure-cli">https://docs.microsoft.com/de-de/cli/azure/install-azure-cli-windows?tabs=azure-cli</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+</code></pre></div><p><em>Warnung</em>: NICHT per <code>apt install azure-cli</code> installieren! Das installiert eine alte verbuggte Version.</p>
+<h2 id="anmelden">Anmelden</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az login
+</code></pre></div><h2 id="verfuegbare-locations-anzeigen">Verfuegbare Locations anzeigen</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az account list-locations -o table
+</code></pre></div><table>
+<thead>
+<tr>
+<th>DisplayName</th>
+<th>Latitude</th>
+<th>Longitude</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>East Asia</td>
+<td>22.267</td>
+<td>114.188</td>
+<td>eastasia</td>
+</tr>
+<tr>
+<td>Southeast Asia</td>
+<td>1.283</td>
+<td>103.833</td>
+<td>southeastasia</td>
+</tr>
+<tr>
+<td>Central US</td>
+<td>41.5908</td>
+<td>-93.6208</td>
+<td>centralus</td>
+</tr>
+<tr>
+<td>East US</td>
+<td>37.3719</td>
+<td>-79.8164</td>
+<td>eastus</td>
+</tr>
+<tr>
+<td>East US 2</td>
+<td>36.6681</td>
+<td>-78.3889</td>
+<td>eastus2</td>
+</tr>
+<tr>
+<td>West US</td>
+<td>37.783</td>
+<td>-122.417</td>
+<td>westus</td>
+</tr>
+<tr>
+<td>North Central US</td>
+<td>41.8819</td>
+<td>-87.6278</td>
+<td>northcentralus</td>
+</tr>
+<tr>
+<td>South Central US</td>
+<td>29.4167</td>
+<td>-98.5</td>
+<td>southcentralus</td>
+</tr>
+<tr>
+<td>North Europe</td>
+<td>53.3478</td>
+<td>-6.2597</td>
+<td>northeurope</td>
+</tr>
+<tr>
+<td>West Europe</td>
+<td>52.3667</td>
+<td>4.9</td>
+<td>westeurope</td>
+</tr>
+<tr>
+<td>Japan West</td>
+<td>34.6939</td>
+<td>135.5022</td>
+<td>japanwest</td>
+</tr>
+<tr>
+<td>Japan East</td>
+<td>35.68</td>
+<td>139.77</td>
+<td>japaneast</td>
+</tr>
+<tr>
+<td>Brazil South</td>
+<td>-23.55</td>
+<td>-46.633</td>
+<td>brazilsouth</td>
+</tr>
+<tr>
+<td>Australia East</td>
+<td>-33.86</td>
+<td>151.2094</td>
+<td>australiaeast</td>
+</tr>
+<tr>
+<td>Australia Southeast</td>
+<td>-37.8136</td>
+<td>144.9631</td>
+<td>australiasoutheast</td>
+</tr>
+<tr>
+<td>South India</td>
+<td>12.9822</td>
+<td>80.1636</td>
+<td>southindia</td>
+</tr>
+<tr>
+<td>Central India</td>
+<td>18.5822</td>
+<td>73.9197</td>
+<td>centralindia</td>
+</tr>
+<tr>
+<td>West India</td>
+<td>19.088</td>
+<td>72.868</td>
+<td>westindia</td>
+</tr>
+<tr>
+<td>Canada Central</td>
+<td>43.653</td>
+<td>-79.383</td>
+<td>canadacentral</td>
+</tr>
+<tr>
+<td>Canada East</td>
+<td>46.817</td>
+<td>-71.217</td>
+<td>canadaeast</td>
+</tr>
+<tr>
+<td>UK South</td>
+<td>50.941</td>
+<td>-0.799</td>
+<td>uksouth</td>
+</tr>
+<tr>
+<td>UK West</td>
+<td>53.427</td>
+<td>-3.084</td>
+<td>ukwest</td>
+</tr>
+<tr>
+<td>West Central US</td>
+<td>40.890</td>
+<td>-110.234</td>
+<td>westcentralus</td>
+</tr>
+<tr>
+<td>West US 2</td>
+<td>47.233</td>
+<td>-119.852</td>
+<td>westus2</td>
+</tr>
+<tr>
+<td>Korea Central</td>
+<td>37.5665</td>
+<td>126.9780</td>
+<td>koreacentral</td>
+</tr>
+<tr>
+<td>Korea South</td>
+<td>35.1796</td>
+<td>129.0756</td>
+<td>koreasouth</td>
+</tr>
+<tr>
+<td>France Central</td>
+<td>46.3772</td>
+<td>2.3730</td>
+<td>francecentral</td>
+</tr>
+<tr>
+<td>France South</td>
+<td>43.8345</td>
+<td>2.1972</td>
+<td>francesouth</td>
+</tr>
+<tr>
+<td>Australia Central</td>
+<td>-35.3075</td>
+<td>149.1244</td>
+<td>australiacentral</td>
+</tr>
+<tr>
+<td>Australia Central 2</td>
+<td>-35.3075</td>
+<td>149.1244</td>
+<td>australiacentral2</td>
+</tr>
+<tr>
+<td>UAE Central</td>
+<td>24.466667</td>
+<td>54.366669</td>
+<td>uaecentral</td>
+</tr>
+<tr>
+<td>UAE North</td>
+<td>25.266666</td>
+<td>55.316666</td>
+<td>uaenorth</td>
+</tr>
+<tr>
+<td>South Africa North</td>
+<td>-25.731340</td>
+<td>28.218370</td>
+<td>southafricanorth</td>
+</tr>
+<tr>
+<td>South Africa West</td>
+<td>-34.075691</td>
+<td>18.843266</td>
+<td>southafricawest</td>
+</tr>
+<tr>
+<td>Switzerland North</td>
+<td>47.451542</td>
+<td>8.564572</td>
+<td>switzerlandnorth</td>
+</tr>
+<tr>
+<td>Switzerland West</td>
+<td>46.204391</td>
+<td>6.143158</td>
+<td>switzerlandwest</td>
+</tr>
+<tr>
+<td>Germany North</td>
+<td>53.073635</td>
+<td>8.806422</td>
+<td>germanynorth</td>
+</tr>
+<tr>
+<td>Germany West Central</td>
+<td>50.110924</td>
+<td>8.682127</td>
+<td>germanywestcentral</td>
+</tr>
+<tr>
+<td>Norway West</td>
+<td>58.969975</td>
+<td>5.733107</td>
+<td>norwaywest</td>
+</tr>
+<tr>
+<td>Norway East</td>
+<td>59.913868</td>
+<td>10.752245</td>
+<td>norwayeast</td>
+</tr>
+<tr>
+<td>Brazil Southeast</td>
+<td>-22.90278</td>
+<td>-43.2075</td>
+<td>brazilsoutheast</td>
+</tr>
+<tr>
+<td>West US 3</td>
+<td>33.448376</td>
+<td>-112.074036</td>
+<td>westus3</td>
+</tr>
+</tbody>
+</table>
+<h2 id="resource-group-erzeugen">Resource group erzeugen</h2>
+<p>Eine neue <strong>resource group</strong> kann mit folgendem Befehl erzeugt werden:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az group create --name MyResourceGroup --location westeurope
+</code></pre></div><h2 id="azure-container-registry-anlegen">Azure container registry anlegen</h2>
+<p>Der Name der <strong>container registry</strong> sollte nur Kleinbuchstaben beinhalten und eindeutig sein
+(&lt;registry-name&gt;.azurecr.io).</p>
+<p><a href="https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli">https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az acr create --resource-group MyResourceGroup --name mycontainerregistrybarbaz789 --sku Basic
+</code></pre></div><p>bzw.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az acr create --resource-group MyResourceGroup --name mycontainerregistrybarbaz789 --sku Basic --admin-enabled true
+</code></pre></div><p>(siehe unten)</p>
+<h2 id="admin-account-aktivieren">Admin account aktivieren</h2>
+<p><a href="https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication#admin-account">https://docs.microsoft.com/en-us/azure/container-registry/container-registry-authentication#admin-account</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker login mycontainerregistrybarbaz789.azurecr.io
+$ az acr update -n mycontainerregistrybarbaz789 --admin-enabled true
+</code></pre></div><h2 id="optional-credentials-fuer-die-registry-anzeigen">(Optional) Credentials fuer die registry anzeigen</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az acr credential show --resource-group MyResourceGroup --name mycontainerregistrybarbaz789
+</code></pre></div><h2 id="bei-container-regristry-anmelden">Bei container regristry anmelden</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az acr login --name mycontainerregistrybarbaz789
+</code></pre></div><h2 id="docker-image-builden">Docker image builden</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker image build -t hello-world .
+</code></pre></div><h2 id="docker-image-taggen">Docker image taggen</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker tag hello-world mycontainerregistrybarbaz789.azurecr.io/hello-world:v1
+</code></pre></div><p>Warum <em>v1</em> und nicht <em>latest</em>? <a href="https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375">https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375</a></p>
+<h2 id="docker-image-pushen">Docker image pushen</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker push mycontainerregistrybarbaz789.azurecr.io/hello-world:v1
+</code></pre></div><h2 id="docker-image-vom-lokalen-rechner-entfernen">Docker image vom lokalen Rechner entfernen</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ docker rmi mycontainerregistrybarbaz789.azurecr.io/hello-world:v1
+</code></pre></div><h2 id="container-images-anzeigen">Container images anzeigen</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az acr repository list --name mycontainerregistrybarbaz789 --output table
+</code></pre></div><h2 id="app-service-einrichten">App Service einrichten</h2>
+<h3 id="app-service-plan-einrichten">App Service plan einrichten</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az appservice plan create --name MyAppServicePlan --resource-group MyResourceGroup --is-linux
+</code></pre></div><h3 id="plaene-auflisten">Plaene auflisten</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az appservice plan list --output table
+</code></pre></div><h3 id="web-app-erzeugen">Web app erzeugen</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az webapp create --resource-group MyResourceGroup --plan MyAppServicePlan --name MyAppNameBarBaz876 --deployment-container-image-name mycontainerregistrybarbaz789.azurecr.io/hello-world:v1
+</code></pre></div><h3 id="managed-identitiy-aktivieren">Managed identitiy aktivieren</h3>
+<p>Um der Anwendung den Zugriff auf andere Azure-Resourcen erlauben zu koennen.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az webapp identity assign --resource-group MyResourceGroup --name MyAppNameBarBaz876 --query principalId --output tsv
+</code></pre></div><h3 id="subscription-info-anzeigen">Subscription info anzeigen</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az account show --query id --output tsv
+</code></pre></div><h3 id="zugriff-auf-container-registry-erlauben">Zugriff auf container registry erlauben</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az role assignment create --assignee &lt;principal-id&gt; --scope /subscriptions/&lt;subscription-id&gt;/resourceGroups/MyResourceGroup/providers/Microsoft.ContainerRegistry/registries/mycontainerregistrybarbaz789 --role <span style="color:#e6db74">&#34;AcrPull&#34;</span>
+</code></pre></div><h3 id="anwendung-deployen">Anwendung deployen</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az webapp config container set <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>--name MyAppNameBarBaz876 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>--resource-group MyResourceGroup <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>--docker-custom-image-name mycontainerregistrybarbaz789.azurecr.io/hello-world:v1 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>--docker-registry-server-url https://mycontainerregistrybarbaz789.azurecr.io
+</code></pre></div><h3 id="logs-aktivieren">Logs aktivieren</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az webapp log config --name MyAppNameBarBaz876 --resource-group MyResourceGroup --docker-container-logging filesystem
+</code></pre></div><h3 id="logs-anzeigen">Logs anzeigen</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az webapp log tail --name MyAppNameBarBaz876 --resource-group MyResourceGroup
+</code></pre></div><h2 id="anwendung-neu-starten">Anwendung neu starten</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az webapp restart --name MyAppNameBarBaz876 --resource-group MyResourceGroup
+</code></pre></div><h3 id="mit-dem-browser-testen">Mit dem Browser testen</h3>
+<p><a href="https://MyAppNameBarBaz876.azurewebsites.net">https://MyAppNameBarBaz876.azurewebsites.net</a></p>
+<h2 id="resource-group-loeschen">Resource group loeschen</h2>
+<p>Wenn zwischendurch was schiefgeht, kann die resource group mit folgendem Befehl jederzeit geloescht werden. Alle Dienste, die unterhalb der resource group angelegt worde sind, werden dabei auch geloescht.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ az group delete --name MyResourceGroup
+</code></pre></div><h2 id="auch-interessant">Auch interessant</h2>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-geo-replication-template">https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-geo-replication-template</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/container-registry/">https://docs.microsoft.com/en-us/azure/container-registry/</a></li>
+<li><a href="https://docs.microsoft.com/de-de/azure/container-registry/container-registry-get-started-docker-cli">https://docs.microsoft.com/de-de/azure/container-registry/container-registry-get-started-docker-cli</a></li>
+<li><a href="https://docs.microsoft.com/de-de/azure/app-service/tutorial-custom-container?pivots=container-linux">https://docs.microsoft.com/de-de/azure/app-service/tutorial-custom-container?pivots=container-linux</a></li>
+</ul>
+
+
+
+    </main><footer>
+    <h1>snetz.github.io</h1>
+</footer></body>
+
+</html>

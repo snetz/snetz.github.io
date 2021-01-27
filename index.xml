@@ -7,12 +7,13 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language><atom:link href="https://snetz.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Winter</title>
-      <link>https://snetz.github.io/winter/</link>
-      <pubDate>Fri, 22 Jan 2021 16:16:35 +0100</pubDate>
+      <title>Deploy Docker Image To Azure App Service</title>
+      <link>https://snetz.github.io/deploy-docker-image-to-azure-app-service/</link>
+      <pubDate>Thu, 21 Jan 2021 17:17:35 +0100</pubDate>
       
-      <guid>https://snetz.github.io/winter/</guid>
-      <description>Snow More snow Monkey Island   </description>
+      <guid>https://snetz.github.io/deploy-docker-image-to-azure-app-service/</guid>
+      <description>TL;DR
+TL;DR az login export RESOURCE_GROUP=MyResourceGroup export CONTAINER_REGISTRY=mycontainerregistrybarbaz789 export SERVICE_PLAN=MyAppServicePlan export DOCKER_IMAGE=hello-world export APP_SERVICE=MyAppNameBarBaz876 az group create \  --name $RESOURCE_GROUP \  --location westeurope az acr create \  --resource-group $RESOURCE_GROUP \  --name $CONTAINER_REGISTRY \  --sku Basic \  --admin-enabled true az acr login --name $CONTAINER_REGISTRY docker image build -t $DOCKER_IMAGE . docker tag $DOCKER_IMAGE $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1 docker push $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1 docker rmi $CONTAINER_REGISTRY.azurecr.io/$DOCKER_IMAGE:v1 az appservice plan create \  --name $SERVICE_PLAN \  --resource-group $RESOURCE_GROUP \  --is-linux az webapp create \  --resource-group $RESOURCE_GROUP \  --plan $SERVICE_PLAN \  --name $APP_SERVICE \  --deployment-container-image-name $CONTAINER_REGISTRY.</description>
     </item>
     
   </channel>
